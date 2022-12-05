@@ -13,21 +13,13 @@ local ReplicatedStorage  =  game:GetService("ReplicatedStorage")
 local VirtualInputManager  =  game:GetService('VirtualInputManager')
 local Data                 =  LocalPlayer['MAIN_DATA']
 local UI                   =  PlayerGui.UI
--- Tables
-local Numbers = {
-    ["1"] = 49,
-    ["2"] = 50,
-    ["3"] = 51,
-    ["4"] = 52,
-    ["5"] = 53,
-    ["6"] = 54,
-    ["7"] = 55,
-    ["8"] = 56,
-    ["9"] = 57
-}
+-- GetFruit
+local function GetFruit()
+    return tostring(tostring(Data.Slots[tostring(Data.Slot.Value)].Value))
+end
 -- GetLevel
 local function GetLevel()
-    return tostring(Data.Fruits[tostring(Data.Slots[tostring(Data.Slot.Value)].Value)].Level.Value)
+    return tostring(Data.Fruits[GetFruit()].Level.Value)
 end
 -- GetStamina
 local function GetStamina()
@@ -54,13 +46,14 @@ end
 task.spawn(function()
     while AutoFarm do task.wait()
         if (LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()) and LocalPlayer.Character:WaitForChild('HumanoidRootPart',2) then
-            for i,v in pairs(UI.Hotbar:GetChildren()) do
-                if tonumber(v.Name) then
-                    VirtualInputManager:SendKeyEvent(true,Numbers[v.Name],false,game)
-                    if LocalPlayer.Character:FindFirstChildOfClass('Tool') and task.wait(0.1) then
-                        VirtualInputManager:SendMouseButtonEvent(0,0,0, true, game, 1)
-                        VirtualInputManager:SendMouseButtonEvent(0,0,0, false, game, 1)
-                        task.wait(0.5)
+            for i,v in pairs(LocalPlayer:GetDescendants()) do
+                if v.ClassName == 'Tool' then
+                    if v:GetAttribute('Name') then 
+                        local Attack = v:GetAttribute('Name')
+                        ReplicatedStorage.Replicator:InvokeServer(GetFruit(),Attack)
+                    else
+                        local Attack = v.Name:gsub(" ","")
+                        ReplicatedStorage.Replicator:InvokeServer(GetFruit(),Attack)
                     end
                 end
             end
@@ -79,7 +72,7 @@ end)
 task.spawn(function()
     while AutoFarm do task.wait()
         -- Hide Gui On Death
-        if LocalPlayer.Character == nil then
+        if PlayerGui:FindFirstChild('DeathScreen') then
             UI.HUD.Visible       =  false
             UI.Safezone.Visible  =  false
         end
