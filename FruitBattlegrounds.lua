@@ -79,7 +79,7 @@ end)
 task.spawn(function()
     while AutoFarm do task.wait()
         -- Hide Gui On Death
-        if PlayerGui:FindFirstChild('DeathScreen') then
+        if LocalPlayer.Character == nil then
             UI.HUD.Visible       =  false
             UI.Safezone.Visible  =  false
         end
