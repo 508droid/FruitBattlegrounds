@@ -3,109 +3,113 @@
 for i,v in pairs(getconnections(game.Players.LocalPlayer.Idled)) do
     v:Disable()
 end
+-- Check    
+if getgenv().ScriptLoaded then
+    getgenv().CharacterAdded:Disconnect()
+    getgenv().CharacterDeath:Disconnect()
+end
+-- Load
+getgenv().ScriptLoaded = true
+-- Fruit Battlegrounds
 -- Important Variables
 local Players            =  game:GetService('Players')
 local LocalPlayer        =  Players.LocalPlayer
 local Backpack           =  LocalPlayer.Backpack
 local PlayerGui          =  LocalPlayer.PlayerGui
-local ReplicatedStorage  =  game:GetService("ReplicatedStorage")
+local ReplicatedStorage  =  game:GetService('ReplicatedStorage')
 -- Variables
-local VirtualInputManager  =  game:GetService('VirtualInputManager')
-local Data                 =  LocalPlayer['MAIN_DATA']
-local UI                   =  PlayerGui.UI
--- GetFruit
-local function GetFruit()
-    return tostring(tostring(Data.Slots[tostring(Data.Slot.Value)].Value))
+local MainData  =  LocalPlayer:WaitForChild('MAIN_DATA')
+local Fruit     =  MainData:WaitForChild('Fruits'):WaitForChild(MainData:WaitForChild('Slots')[MainData:WaitForChild('Slot').Value].Value)
+local UI        =  PlayerGui.UI
+-- Play Button
+local Buttons, PlayFunction
+for i,v in pairs(getgc(true)) do
+    if typeof(v) == "table" and rawget(v, "Buttons") and rawget(v, "Hovering") then
+       Buttons = v.Buttons
+       break
+    end
 end
--- GetLevel
-local function GetLevel()
-    return tostring(Data.Fruits[GetFruit()].Level.Value)
+for i,v in pairs(Buttons) do
+   if i.Name == "Play" then
+       PlayFunction = v.Click
+       break
+   end
+end
+local function Play()
+    PlayFunction()
 end
 -- GetStamina
 local function GetStamina()
-    return (tonumber(GetLevel()) * 4) + 200
+    return (tonumber(Fruit.Level.Value) * 4) + 200
 end
 -- Percent
 local function Percent(Part, Whole)
     return (Part / Whole) * 100
 end
--- Respawn
-local function Respawn()
-    require(ReplicatedStorage.Loader).ServerEvent('Core', 'LoadCharacter', {})
-    require(ReplicatedStorage.Loader).ServerEvent('Main', 'LoadCharacter')
-    if (LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()) and LocalPlayer.Character:WaitForChild('Humanoid',2) then
-        Workspace.CurrentCamera.CameraSubject =  LocalPlayer.Character.Humanoid
-        game:GetService('StarterGui'):SetCoreGuiEnabled('Backpack',false)
-        game:GetService('StarterGui'):SetCoreGuiEnabled('PlayerList',true)
-        game:GetService('StarterGui'):SetCoreGuiEnabled('Chat',true)
-        UI.MainMenu.Visible  =  false
-        UI.HUD.Visible       =  true
-    end
-end
--- AutoFarm : Attack
-task.spawn(function()
-    while AutoFarm do task.wait()
-        if (LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()) and LocalPlayer.Character:WaitForChild('HumanoidRootPart',2) then
-            for i,v in pairs(LocalPlayer:GetDescendants()) do
-                if v.ClassName == 'Tool' then
-                    if v:GetAttribute('Name') then 
-                        local Attack = v:GetAttribute('Name')
-                        ReplicatedStorage.Replicator:InvokeServer(GetFruit(),Attack)
-                    else
-                        local Attack = v.Name:gsub(" ","")
-                        ReplicatedStorage.Replicator:InvokeServer(GetFruit(),Attack)
+-- Character Added
+getgenv().CharacterAdded = LocalPlayer.CharacterAdded:Connect(function(Character)
+    task.spawn(function()
+        while Autofarm do task.wait()
+            pcall(function()
+                -- Attack
+                for i,v in pairs(LocalPlayer:WaitForChild('Backpack'):GetChildren()) do
+                    if v.ClassName == 'Tool' then
+                        local Attack;
+                        if v:GetAttribute('Name') then
+                            Attack = v:GetAttribute('Name')
+                        else
+                            Attack = v.Name:gsub(" ","")
+                        end
+                        ReplicatedStorage.Replicator:InvokeServer(Fruit.Name,Attack,{["MouseRay"] = {}})
                     end
                 end
+                -- Position
+                Character:WaitForChild('HumanoidRootPart').CFrame = CFrame.new(-304, 697, -1241)
+                -- Stamina
+                if Percent(Character:WaitForChild('Stats'):GetAttribute("Stamina"),GetStamina()) <= Stamina then
+                    Character:BreakJoints()
+                end
+            end)
+        end
+    end)
+end)
+-- Character Death
+getgenv().CharacterDeath = LocalPlayer.CharacterAdded:Connect(function(Character)
+    Character.ChildAdded:Connect(function(Humanoid)
+        if Humanoid.Name == 'Humanoid' then
+            Humanoid.Died:Connect(function()
+                while Autofarm do task.wait(2)
+                    syn.set_thread_identity(Autofarm and 1 or 7)
+                    if syn.get_thread_identity() == 1 then
+                        if UI.MainMenu.Buttons.Play.Position.X.Scale == .5 then
+                            Play()
+                            syn.set_thread_identity(7)
+                            break
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+end)
+-- Start
+if LocalPlayer.Character then
+    LocalPlayer.Character:BreakJoints()
+    while Autofarm do task.wait(2)
+        syn.set_thread_identity(Autofarm and 1 or 7)
+        if syn.get_thread_identity() == 1 then
+            if UI.MainMenu.Buttons.Play.Position.X.Scale == .5 then
+                Play()
+                syn.set_thread_identity(7)
+                break
             end
         end
     end
-end)
--- AutoFarm : Position
-task.spawn(function()
-    while AutoFarm do task.wait()
-        if (LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()) and LocalPlayer.Character:WaitForChild('HumanoidRootPart',2) then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-304, 697, -1241)
+else syn.set_thread_identity(Autofarm and 1 or 7)
+    if syn.get_thread_identity() == 1 then
+        if UI.MainMenu.Buttons.Play.Position.X.Scale == .5 then
+            Play()
+            syn.set_thread_identity(7)
         end
     end
-end)
--- AutoFarm : Respawn : 1/3
-task.spawn(function()
-    while AutoFarm do task.wait()
-        -- Hide Gui On Death
-        if PlayerGui:FindFirstChild('DeathScreen') then
-            UI.HUD.Visible       =  false
-            UI.Safezone.Visible  =  false
-        end
-        -- Hide Gui On Spawn
-        if (LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()) and LocalPlayer.Character:WaitForChild('Humanoid',2) then
-            game:GetService('StarterGui'):SetCoreGuiEnabled('Backpack',false)
-            game:GetService('StarterGui'):SetCoreGuiEnabled('PlayerList',true)
-            game:GetService('StarterGui'):SetCoreGuiEnabled('Chat',true)
-            UI.MainMenu.Visible  =  false
-            UI.HUD.Visible       =  true
-        end
-        -- Fix Camera On Spawn
-        if (LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()) and LocalPlayer.Character:WaitForChild('Humanoid',2) then
-            Workspace.CurrentCamera.CameraSubject =  LocalPlayer.Character.Humanoid
-            Workspace.CurrentCamera.CameraType    =  Enum.CameraType.Custom
-        end
-    end
-end)
--- AutoFarm : Respawn : 2/3
-task.spawn(function()
-    while AutoFarm do task.wait()
-        if (LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()) then
-            if Percent(LocalPlayer.Character:WaitForChild('Stats',2):GetAttribute("Stamina"),GetStamina()) <= getgenv().Stamina then
-                LocalPlayer.Character:BreakJoints()
-            end
-        end
-    end
-end)
--- AutoFarm : Respawn : 3/3
-task.spawn(function()
-    while AutoFarm do task.wait()
-        if LocalPlayer.Character == nil and UI.HUD.Visible == false then
-            Respawn()
-        end
-    end
-end)
+end
