@@ -21,6 +21,7 @@ local ReplicatedStorage  =  game:GetService('ReplicatedStorage')
 local MainData  =  LocalPlayer:WaitForChild('MAIN_DATA')
 local Fruit     =  MainData:WaitForChild('Fruits'):WaitForChild(MainData:WaitForChild('Slots')[MainData:WaitForChild('Slot').Value].Value)
 local UI        =  PlayerGui.UI
+local Blacklist =  {"Kurouzu"}
 -- Play Button
 local Buttons, PlayFunction
 for i,v in pairs(getgc(true)) do
@@ -60,11 +61,25 @@ getgenv().CharacterAdded = LocalPlayer.CharacterAdded:Connect(function(Character
                         else
                             Attack = v.Name:gsub(" ","")
                         end
-                        ReplicatedStorage.Replicator:InvokeServer(Fruit.Name,Attack,{["MouseRay"] = {}})
+                        if table.find(Blacklist,Attack) == nil then
+                            local args = {
+                                [1] = Fruit.Name,
+                                [2] = Attack,
+                                [3] = {
+                                    ["MouseRay"] = {},
+                                    ["Ground"] = {
+                                        ["Instance"] = Instance.new("Part"),
+                                        ["Position"] = Vector3.new(0,0,0)
+                                    }
+                                }
+                            }
+                        
+                        game:GetService("ReplicatedStorage").Replicator:InvokeServer(unpack(args))
+                        end
                     end
                 end
                 -- Position
-                Character:WaitForChild('HumanoidRootPart').CFrame = CFrame.new(-304, 697, -1241)
+                Character:WaitForChild('HumanoidRootPart').CFrame = getgenv().Position
                 -- Stamina
                 if Percent(Character:WaitForChild('Stats'):GetAttribute("Stamina"),GetStamina()) <= Stamina then
                     Character:BreakJoints()
