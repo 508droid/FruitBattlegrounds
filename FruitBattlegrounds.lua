@@ -3,7 +3,10 @@
 
 local scriptversion = 2
 if getgenv().Version ~= scriptversion then
-    notify("Script updated!","Please visit original thread for new script") 
+    game:GetService("StarterGui"):SetCore("SendNotification",{
+        Title = "Script updated!",
+        Text = "Please visit original thread for new script",
+    })
     --break
 end
 -- Anti AFK
