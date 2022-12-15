@@ -1,3 +1,9 @@
+getgenv().Position        =  CFrame.new(67, 822, 1616) -- Position you want to farm at
+getgenv().Stamina         =  10   -- The Percentage Of Stamina You Want To Reset At ( If you dont wanna reset make it tonumber('-inf') or -math.huge )
+getgenv().Autofarm        =  true -- Autofarm Toggle
+getgenv().AntiKill        =  true -- Toggles anti kill feature
+getgenv().AntiKillShop    =  true -- Server hop after anti kill triggered?
+getgenv().AntiKillPercent =  50   -- Percentage of health to trigger anti kill at (Must be integer)
 -- Fruit Battlegrounds
 -- AntiAFK
 for i,v in pairs(getconnections(game.Players.LocalPlayer.Idled)) do
@@ -22,6 +28,7 @@ local MainData  =  LocalPlayer:WaitForChild('MAIN_DATA')
 local Fruit     =  MainData:WaitForChild('Fruits'):WaitForChild(MainData:WaitForChild('Slots')[MainData:WaitForChild('Slot').Value].Value)
 local UI        =  PlayerGui.UI
 local Blacklist =  {"Kurouzu"}
+local inDanger  = false
 -- Play Button
 local Buttons, PlayFunction
 for i,v in pairs(getgc(true)) do
@@ -29,6 +36,9 @@ for i,v in pairs(getgc(true)) do
        Buttons = v.Buttons
        break
     end
+end
+local function Shop()
+    game:GetService("TeleportService"):Teleport(game.PlaceId,LocalPlayer)
 end
 for i,v in pairs(Buttons) do
    if i.Name == "Play" then
@@ -47,6 +57,33 @@ end
 local function Percent(Part, Whole)
     return (Part / Whole) * 100
 end
+getgenv().CharacterAdded = LocalPlayer.CharacterAdded:Connect(function(Character)
+    task.spawn(function()
+        while AntiKill and Autofarm do task.wait()
+            pcall(function()
+                local percentHealth = Percent(LocalPlayer.Character.Humanoid.Health, LocalPlayer.Character.Humanoid.MaxHealth)
+                if inDanger == true then
+                    if LocalPlayer.PlayerGui.UI.InCombat.Visible == false then
+                        Character:BreakJoints()
+                        inDanger = false
+                        if AntiKillShop then
+                            getgenv().Autofarm = false
+                            Shop()
+                        end
+                    else
+                        local randomPosition = Vector3.new(math.random(-10000,10000),math.random(30000,50000),math.random(-10000,10000))
+                        Character:WaitForChild('HumanoidRootPart').Position = randomPosition
+                    end
+                elseif percentHealth <= AntiKillPercent and percentHealth ~= 0 then
+                    inDanger = true
+                else
+                    -- Position
+                    Character:WaitForChild('HumanoidRootPart').CFrame = getgenv().Position
+                end
+            end)
+        end
+    end)
+end)
 -- Character Added
 getgenv().CharacterAdded = LocalPlayer.CharacterAdded:Connect(function(Character)
     task.spawn(function()
@@ -60,6 +97,9 @@ getgenv().CharacterAdded = LocalPlayer.CharacterAdded:Connect(function(Character
                             Attack = v:GetAttribute('Name')
                         else
                             Attack = v.Name:gsub(" ","")
+                        end
+                        if Autofarm and not AntiKill then
+                            Character:WaitForChild('HumanoidRootPart').CFrame = getgenv().Position
                         end
                         if table.find(Blacklist,Attack) == nil then
                             local args = {
@@ -78,8 +118,6 @@ getgenv().CharacterAdded = LocalPlayer.CharacterAdded:Connect(function(Character
                         end
                     end
                 end
-                -- Position
-                Character:WaitForChild('HumanoidRootPart').CFrame = getgenv().Position
                 -- Stamina
                 if Percent(Character:WaitForChild('Stats'):GetAttribute("Stamina"),GetStamina()) <= Stamina then
                     Character:BreakJoints()
