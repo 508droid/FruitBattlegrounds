@@ -3,6 +3,7 @@
 local scriptversion = 2
 if Version ~= scriptversion then
     notify("Script updated!","Please visit original thread for new script") 
+    break
 end
 -- Anti AFK
 for i,v in pairs(getconnections(game.Players.LocalPlayer.Idled)) do
