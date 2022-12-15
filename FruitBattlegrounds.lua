@@ -1,5 +1,6 @@
 -- Fruit Battlegrounds
 -- Version Check
+
 local scriptversion = 2
 if getgenv().Version ~= scriptversion then
     notify("Script updated!","Please visit original thread for new script") 
