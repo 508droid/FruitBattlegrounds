@@ -1,7 +1,7 @@
 -- Fruit Battlegrounds
 -- Version Check
 
-local scriptversion = 3
+local scriptversion = 3.1
 if getgenv().Version ~= scriptversion then
     game:GetService("StarterGui"):SetCore("SendNotification",{
         Title = "Script updated!",
@@ -31,7 +31,7 @@ if getgenv().Version ~= scriptversion then
     local MainData  =  LocalPlayer:WaitForChild('MAIN_DATA')
     local Fruit     =  MainData:WaitForChild('Fruits'):WaitForChild(MainData:WaitForChild('Slots')[MainData:WaitForChild('Slot').Value].Value)
     local UI        =  PlayerGui.UI
-    local Blacklist =  {"Kurouzu"}
+    local Blacklist =  {"Kurouzu","Partisan"}
     local inDanger  = false
 -- Play Button
     local Buttons, PlayFunction
