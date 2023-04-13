@@ -121,16 +121,45 @@ if getgenv().Version ~= scriptversion then
                             game:GetService("ReplicatedStorage").Replicator:InvokeServer(unpack(args))
                             end
                             if table.find(Blacklist,Attack) == nil then
+                            local args = {
+                                [1] = Fruit.Name,
+                                [2] = Attack,
+                                [3] = {
+                                    ["MouseRay"] = {
+                                        ["Normal"] = Vector3.new(-0.9998822808265686, -0.013901499100029469, -0.006553381681442261),
+                                        ["Direction"] = Vector3.new(271.86468505859375, -126.84456634521484, 0.22577443718910217),
+                                        ["Origin"] = Vector3.new(57.5577392578125, 831.5248413085938, 1615.53759765625),
+                                        ["Instance"] = workspace:WaitForChild("Map"):WaitForChild("1"),
+                                        ["Distance"] = 223.11334228515625,
+                                        ["Position"] = Vector3.new(259.7464904785156, 737.1890258789062, 1615.7054443359375),
+                                        ["Material"] = Enum.Material.Slate
+                                    }
+                                }
+                            }
+                            
+                            game:GetService("ReplicatedStorage"):WaitForChild("ReplicatorNoYield"):FireServer(unpack(args))
+                            end
+                            if table.find(Blacklist,Attack) == nil then
+                            local args = {
+                                [1] = Fruit.Name,
+                                [2] = Attack,
+                                [3] = {}
+                            }
+                            
+                            game:GetService("ReplicatedStorage"):WaitForChild("ReplicatorNoYield"):FireServer(unpack(args))
+                            end
+
+                            if table.find(Blacklist,Attack) == nil then
                                 local args = {
                                     [1] = Fruit.Name,
                                     [2] = Attack,
                                     [3] = {
                                         ["MouseRay"] = {
-                                            ["Normal"] = Vector3.new(1, 0, 0), 
+                                            ["Normal"] = Vector3.new(0, 0, 0), 
                                             ["Direction"] = Vector3.new(0, 0, 0), 
                                             ["Origin"] = Vector3.new(0, 0, 0), 
                                             ["Instance"] = game:GetService("Workspace").Map.Part, 
-                                            ["Distance"] = 211.5660858154297, 
+                                            ["Distance"] = 0, 
                                             ["Position"] = Vector3.new(0, 0, 0), 
                                             ["Material"] = Enum.Material.Plastic
                                         },
